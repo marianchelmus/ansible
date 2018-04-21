@@ -1,0 +1,70 @@
+---
+- hosts: webservers
+  become: "root"
+  gather_facts: yes
+  connection: ssh
+  port: 8888 
+
+  pre_tasks:
+  - name: include db vars
+    include_vars: vars/db.yml
+
+  tasks: 
+  - name: copy wordpress archive
+    copy:
+        src: "files/latest.tar.gz"
+        dest: "/var/www/html/latest.tar.gz"
+
+  - name: untar wordpress archive
+    unarchive:
+        src: /var/www/html/latest.tar.gz
+        dest: /var/www/html/
+        remote_src: yes
+
+  - name: copy wordpress files
+    shell: cp -r /var/www/html/wordpress/* /var/www/html/
+
+  - name: remove unneccessary files
+    file: 
+        path: /var/www/html/{{ item }}
+        state: absent
+    with_items:
+        - latest.tar.gz
+        - wordpress
+ 
+  - name: create MySql DB
+    mysql_db: 
+        name: '{{ db_name }}'
+        state: present
+
+  - name: create db user
+    mysql_user:
+        name: '{{ db_user }}' 
+        password: '{{ db_password }}'
+        priv: '*.*:ALL'
+        state: present
+
+  - name: copy wp-config.file
+    command: mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
+
+  - name: update wp config file
+    lineinfile:
+        dest: "/var/www/html/wp-config.php"
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+    with_items:
+        - {'regexp': "define\\('DB_NAME', '(.)+'\\);", 'line': "define('DB_NAME', '{{db_name}}');"}        
+        - {'regexp': "define\\('DB_USER', '(.)+'\\);", 'line': "define('DB_USER', '{{db_user}}');"}        
+        - {'regexp': "define\\('DB_PASSWORD', '(.)+'\\);", 'line': "define('DB_PASSWORD', '{{db_password}}');"}
+
+  - name: export db
+    mysql_db:
+        state: dump
+        name: '{{ db_name }}'
+        target: /home/{{ db_name }}.sql
+
+  - name: fetch dump
+    fetch:
+        src: /home/{{ db_name }}.sql
+        dest: /files/db_dumps/{{ db_name }}.sql
+

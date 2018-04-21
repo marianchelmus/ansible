@@ -1,0 +1,56 @@
+---
+- hosts: webservers
+  become_user: "root"
+  gather_facts: yes
+  connection: ssh
+  port: 8888
+  
+  tasks:
+  - name: install httpd
+    yum:
+        name: httpd
+        state: present
+
+  - name: start httpd
+    service:
+        name: httpd
+        state: started
+        enabled: yes
+
+  - name: install mariadb and mariadb-server
+    yum:
+        name: "{{ item }}"
+        state: present
+    with_items:
+        - mariadb
+        - mariadb-server
+        - MySQL-python
+
+  - name: start and enable mariadb
+    service:
+        name: mariadb
+        state: started
+        enabled: yes
+
+  - name: install php exensions
+    yum: 
+        name: "{{ item }}"
+        state: present
+    with_items:
+        - php
+        - php-mysql
+        - php-xml
+        - php-xmlrpc
+        - php-mbstring
+        - php-curl
+        - php-zip
+
+    notify:
+        - restart-httpd
+
+  handlers:
+  - name: restart-httpd
+    service: 
+        name: httpd
+        state: restarted
+   

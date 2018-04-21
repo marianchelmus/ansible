@@ -1,0 +1,65 @@
+---
+- hosts: staging
+  become_user: "root"
+  gather_facts: yes
+  connection: ssh
+  port: 8888
+
+  pre_tasks:
+  - name: Install vim
+    yum: 
+        name: vim
+        state: present
+  
+  - name: install net-tools
+    yum:
+        name: net-tools
+        state: present
+
+  - name: install wget
+    yum:
+        name: wget
+        state: present
+
+  - name: upgrade all packages, excluding kernel & foo related packages
+    yum:
+        name: '*'
+        state: latest
+        exclude: kernel*,foo*
+
+
+  - name: install MysqlDB-Python module
+    yum:
+        name: MySQL-python
+        state: present
+  
+  tasks:
+  - name: change ssh port
+    lineinfile: dest=/etc/ssh/sshd_config
+                regexp="^Port"
+                line="Port 8888"
+                state=present
+
+  - name: disable password login
+    lineinfile: dest=/etc/ssh/sshd_config
+                regexp="^PasswordAuthentication"
+                line="PasswordAuthentication no"
+                state=present
+
+  post_tasks:
+  - name: restart sshd
+    service: 
+        name=sshd
+        state=restarted
+
+  - name: update bashrc
+    copy:
+        src: "templates/bashrc"
+        dest: "~/.bashrc"
+        backup: yes
+
+  - name: update vimrc
+    copy:
+        src: "templates/vimrc"
+        dest: "~/.vimrc"
+        backup: yes
