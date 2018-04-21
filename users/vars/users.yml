@@ -1,0 +1,4 @@
+---
+users:
+  - username: test1 
+    state: present

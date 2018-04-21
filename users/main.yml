@@ -1,0 +1,65 @@
+---
+- hosts: all
+  user: root
+  connection: ssh
+  port: 8888
+  tasks:
+  - name: Disallow password SSH access
+    lineinfile: dest=/etc/ssh/sshd_config
+                regexp="^PermitRootLogin"
+                line="PermitRootLogin without-password"
+                state=present
+    notify: restart ssh
+  handlers:
+  - name: restart ssh
+    service: 
+      name=sshd 
+      state=restarted
+
+  - name: Allow wheel group to be passwordless
+    lineinfile: 
+                dest: /etc/sudoers
+                state: present
+                regexp: '^%wheel'
+                line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+
+  - name: add users vars 
+    include_vars: vars/users.yml
+               
+  - name: Add or delete  users from vars/users
+    user: 
+              name: "{{ item.username }}"
+              groups: wheel
+              state: "{{ item.state|d(absent) }}"
+    with_items:
+               - "{{ users }}"
+  - name: create .ssh directory
+    file:
+              path: /home/{{ item.username }}/.ssh
+              state: directory
+              mode: 0700
+              owner: "{{ item.username }}"
+              group: "{{ item.username }}"
+    when: item.state == 'present'
+    with_items:
+                - "{{ users }}"
+  - name: copy ssh key
+    copy:
+              src: "vars/user_keys/{{item.username}}.pub"
+              dest: "/home/{{ item.username }}/.ssh/authorized_keys"
+              owner: "{{ item.username }}"
+              group: "{{ item.username }}"
+              mode: 0600
+    with_items:
+               - "{{ users }}"
+    when: item.state == 'present'
+
+# delete user and homedir only when the status of the user is set to absent
+  - name: delete homedir of absent user 
+    file:
+               path: /home/{{ item.username}}
+               state: absent
+    with_items:
+               - "{{ users }} "
+    when: item.state == 'absent'
+                                                                       
