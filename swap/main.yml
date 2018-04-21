@@ -1,0 +1,35 @@
+---
+- hosts: all
+  user: root
+  gather_facts: yes
+  connection: ssh
+  port: 8888
+
+  pre_tasks:
+  - name: check if swap exists
+    stat:
+        path=/var/swap
+    register: swap_exists
+
+  - name: stop playbook if swap exists
+    fail: 
+        msg="Swap file exists already"
+    when: swap_exists.stat.exists
+
+  tasks:
+  - name: create swap file
+    command: fallocate -l 1G /var/swap
+
+  - name: mkswap
+    command: mkswap /var/swap
+
+  - name: set swap permissions
+    file:
+        path: /var/swap
+        mode: 0600
+
+  - name: turn swap on
+    command: swapon /var/swap
+
+  - name: add swap to fstab
+    action: lineinfile dest=/etc/fstab regexp="swap" line="/var/swap               none                    swap    defaults        0 0" state=present
