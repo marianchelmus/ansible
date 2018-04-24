@@ -1,0 +1,19 @@
+---
+- hosts: staging
+  user: root
+  connection: ssh
+  port: 8888
+
+  tasks:
+  - name: Archive /var/www/html
+    archive:
+        path: /var/www/html/
+        dest: /tmp/wordpress-backup.tar.gz
+
+  - name: fetch archive   
+    fetch:
+        src: /tmp/wordpress-backup.tar.gz
+        dest: files/wp_backup/{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}/wordpress-backup.tar.gz
+        flat: yes
+
+

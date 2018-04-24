@@ -3,3 +3,5 @@
 *.tmp
 inventory.*
 wordpress/files/db_dumps/*
+wordpress/files/wp_backup/*
+
