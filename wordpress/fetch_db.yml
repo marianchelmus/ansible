@@ -20,3 +20,8 @@
         name: '{{ db_name }}'
         target: /backup/db/{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}/{{ db_name}}.sql
 
+  - name: fetch db dump
+    fetch:
+        src: /backup/db/{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}/{{ db_name}}.sql
+        dest: files/db_dumps/{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}/{{ db_name}}.sql
+        flat: yes
