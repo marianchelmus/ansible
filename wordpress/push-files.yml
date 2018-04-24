@@ -1,0 +1,38 @@
+---
+- hosts: webservers
+  user: root
+  connection: ssh
+  port: 8888
+  vars: 
+        last_wp: "{{ lookup('pipe', 'find files/wp_backup/ -type f -mmin -600 | sort -r | head -n 1') }}" 
+
+  pre_tasks:
+  - name: debug last_wp var
+    debug: var=last_wp
+
+  tasks:
+  - name: create a new directory with latest wp backup datestamp
+    file:
+        path: /backup/wp/{{ lookup('pipe', 'date +%Y%m%d') }}
+        state: directory
+
+  - name: copy wp backup
+    copy:
+        src: '{{ last_wp }}'
+        dest: /backup/wp/{{ lookup('pipe', 'date +%Y%m%d') }}/wordpress-backup.tar.gz
+
+  - name: remove /var/www/html/*
+    file:
+        path: /var/www/html/
+        state: absent
+
+  - name: create /var/www/html
+    file:
+        path: /var/www/html/
+        state: directory
+
+  - name: unarchive
+    unarchive:
+        src: /backup/wp/{{ lookup('pipe', 'date +%Y%m%d') }}/wordpress-backup.tar.gz        
+        dest: /var/www/html/
+        remote_src: yes
