@@ -1,4 +1,4 @@
 # local gitignore
 *.retry
 *.tmp
-
+inventory.*
