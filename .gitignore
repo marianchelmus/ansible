@@ -2,3 +2,4 @@
 *.retry
 *.tmp
 inventory.*
+wordpress/files/db_dumps/*
