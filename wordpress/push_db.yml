@@ -11,13 +11,18 @@
     include_vars: vars/db.yml
   - name: debug last db var
     debug: var=last_db
-
+  
   tasks:
-  - name: dump current db
+  - name: create a new directry with current dump  datestamp
+    file:
+        path: /backup/db/{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}
+        state: directory
+
+  - name: dump database
     mysql_db:
-        name: '{{ db_name }}'
         state: dump
-        target: /backup/db/{ lookup('pipe', 'date +%Y%m%d-%H%M') }}/{{ db_name}}.sql
+        name: '{{ db_name }}'
+        target: /backup/db/{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}/{{ db_name}}.sql
 
   - name: drop db
     mysql_db:
@@ -39,11 +44,11 @@
   - name: copy last db backup
     copy:
         src: '{{ last_db }}'
-        dest: /tmp/{{ last_db }}
+        dest: /tmp/last-db.sql
 
   - name: import db
     mysql_db:
-        name: '{{ last_db }}' 
+        name: '{{ db_name }}' 
         state: import
-        target: /tmp/{{ last_db }}
+        target: /tmp/last-db.sql
 
