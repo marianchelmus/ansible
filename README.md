@@ -1,3 +1,9 @@
-*This text will be italic*
-**This text will be italic**
-**This text will be bold**
+##Ansible Playbooks
+
+**initial deply** 
+
+**lamp**
+
+**swap**
+
+**wordpress** - needs initial deploy and lamp
