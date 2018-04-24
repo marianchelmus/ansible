@@ -1,0 +1,22 @@
+---
+- hosts: staging
+  user: root
+  connection: ssh
+  port: 8888
+
+  pre_tasks:
+  - name: include vars
+    include_vars: vars/db.yml
+
+  tasks:
+  - name: create a new directry with today's datestamp
+    file:
+        path: /backup/db/{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}
+        state: directory
+  
+  - name: dump database
+    mysql_db:
+        state: dump
+        name: '{{ db_name }}'
+        target: /backup/db/{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}/{{ db_name}}.sql
+

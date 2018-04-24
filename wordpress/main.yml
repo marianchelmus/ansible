@@ -1,5 +1,5 @@
 ---
-- hosts: webservers
+- hosts: staging
   become: "root"
   gather_facts: yes
   connection: ssh
