@@ -1,0 +1,54 @@
+---
+- hosts: webservers
+  user: root
+  connection: ssh
+  port: 8888
+  vars:
+        last_db: "{{ lookup('pipe', 'find files/db_dumps/ -type f -mmin -600 | sort -r | head -n 1') }}" 
+
+  pre_tasks:
+  - name: include vars
+    include_vars: vars/db.yml
+  - name: debug last db var
+    debug: var=last_db
+  
+  tasks:
+  - name: create a new directry with current dump  datestamp
+    file:
+        path: /backup/db/{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}
+        state: directory
+
+  - name: dump database
+    mysql_db:
+        state: dump
+        name: '{{ db_name }}'
+        target: /backup/db/{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}/{{ db_name}}.sql
+
+  - name: drop db
+    mysql_db:
+         name: '{{ db_name }}'
+         state: absent
+
+  - name: create new empty db
+    mysql_db:
+         name: '{{ db_name }}'
+         state: present
+
+  - name: assign user to db
+    mysql_user:
+         name: '{{ db_user }}'
+         priv: '*.*:ALL'
+         state: present
+
+
+  - name: copy last db backup
+    copy:
+        src: '{{ last_db }}'
+        dest: /tmp/last-db.sql
+
+  - name: import db
+    mysql_db:
+        name: '{{ db_name }}' 
+        state: import
+        target: /tmp/last-db.sql
+
