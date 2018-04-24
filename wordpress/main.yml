@@ -57,14 +57,4 @@
         - {'regexp': "define\\('DB_USER', '(.)+'\\);", 'line': "define('DB_USER', '{{db_user}}');"}        
         - {'regexp': "define\\('DB_PASSWORD', '(.)+'\\);", 'line': "define('DB_PASSWORD', '{{db_password}}');"}
 
-  - name: export db
-    mysql_db:
-        state: dump
-        name: '{{ db_name }}'
-        target: /home/{{ db_name }}.sql
-
-  - name: fetch dump
-    fetch:
-        src: /home/{{ db_name }}.sql
-        dest: /files/db_dumps/{{ db_name }}.sql
 
