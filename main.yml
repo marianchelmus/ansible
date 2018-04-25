@@ -10,4 +10,4 @@
   - name: Apply chmod 755 on all /var/www/html
     file: 
         path: /var/www/html
-        mode: 755 
+        mode: 0 
