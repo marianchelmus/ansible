@@ -1,5 +1,5 @@
 ---
-- hosts: web2.keepitchill.eu
+- hosts: web3.keepitchill.eu
   user: root
   connection: ssh
   port: 8888
@@ -59,7 +59,7 @@
         - "command[check_swap]=/usr/lib64/nagios/plugins/check_swap -w $ARG1$ -c $ARG2$"
         - "command[check_users]=/usr/lib64/nagios/plugins/check_users -w $ARG1$ -c $ARG2$"
         - "command[check_disk]=/usr/lib64/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$"
-        - "command[check_procs]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ 0-c $ARG2$ -s $ARG3$"
+        - "command[check_procs]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -s $ARG3$"
 
   - name: start and enable nrpe
     service:
