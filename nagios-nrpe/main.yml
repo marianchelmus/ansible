@@ -1,0 +1,25 @@
+---
+- hosts: web2.keepitchill.eu
+  user: root
+  connection: ssh
+  port: 8888
+
+  tasks:
+  - name: install epel-release
+    yum: 
+        name: epel-release
+        state: present
+
+  - name: install dependencies
+    yum:
+        name: "{{ item }}"
+        state: present
+    with_items:
+        - nrpe
+        - nagios-plugins-users
+        - nagios-plugins-load
+        - nagios-plugins-swap
+        - nagios-plugins-disk
+        - nagios-plugins-procs
+                
+                
