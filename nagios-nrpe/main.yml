@@ -21,5 +21,49 @@
         - nagios-plugins-swap
         - nagios-plugins-disk
         - nagios-plugins-procs
-                
-                
+        - krb5-devel
+        - openssl-devel 
+
+  - name: edit nrpe.cfg 
+    replace:
+        dest: "/etc/nagios/nrpe.cfg"
+        regexp: "{{ item.regexp }}"
+        replace: "{{ item.line }}"
+    with_items:
+        - { regexp: 'debug=0', line: 'debug=1' }
+        - { regexp: 'allowed_hosts=127.0.0.1,::1', line: 'allowed_hosts=127.0.0.1,188.241.118.206' }
+        - { regexp: 'dont_blame_nrpe=0', line: 'dont_blame_nrpe=1' }
+        - { regexp: 'allow_bash_command_substitution=0', line: 'allow_bash_command_substitution=1' }
+        - { regexp: '#allow_weak_random_seed=1', line: 'allow_weak_random_seed=1' }
+        - { regexp: '#ssl_client_certs=0', line: 'ssl_client_certs=0' }
+
+  - name: comment existing commands
+    replace:
+        dest: "/etc/nagios/nrpe.cfg"
+        regexp: "{{ item.regexp }}"
+        replace: "{{ item.line }}"
+    with_items:
+        - { regexp: 'command[check_total_procs]=/usr/lib64/nagios/plugins/check_procs -w 150 -c 200', line: '#command[check_total_procs]=/usr/lib64/nagios/plugins/check_procs -w 150 -c 200'}
+        - { regexp: 'command[check_zombie_procs]=/usr/lib64/nagios/plugins/check_procs -w 5 -c 10 -s Z', line: '#command[check_zombie_procs]=/usr/lib64/nagios/plugins/check_procs -w 5 -c 10 -s Z'}
+        - { regexp: 'command[check_hda1]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /dev/hda1', line: '#command[check_hda1]=/usr/lib64/nagios/plugins/check_disk -w 20% -c 10% -p /dev/hda1'}
+        - { regexp: 'command[check_load]=/usr/lib64/nagios/plugins/check_load -r -w .15,.10,.05 -c .30,.25,.20', line: '#command[check_load]=/usr/lib64/nagios/plugins/check_load -r -w .15,.10,.05 -c .30,.25,.20'}
+        - { regexp: 'command[check_users]=/usr/lib64/nagios/plugins/check_users -w 5 -c 10', line: '#command[check_users]=/usr/lib64/nagios/plugins/check_users -w 5 -c 10'}
+
+  - name: add commands
+    lineinfile:
+        dest: "/etc/nagios/nrpe.cfg"
+#        insertaftrer: EOF
+        line: "{{ item }}"
+    with_items:
+        - "command[check_load]=/usr/lib64/nagios/plugins/check_load -w $ARG1$ -c $ARG2$"
+        - "command[check_swap]=/usr/lib64/nagios/plugins/check_swap -w $ARG1$ -c $ARG2$"
+        - "command[check_users]=/usr/lib64/nagios/plugins/check_users -w $ARG1$ -c $ARG2$"
+        - "command[check_disk]=/usr/lib64/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$"
+        - "command[check_procs]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ 0-c $ARG2$ -s $ARG3$"
+
+  - name: start and enable nrpe
+    service:
+        name: nrpe
+        state: started
+        enabled: yes
+                 
