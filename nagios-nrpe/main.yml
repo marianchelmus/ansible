@@ -24,6 +24,36 @@
         - krb5-devel
         - openssl-devel 
 
+  - name: install check_mysql_health plugin
+    shell: wget -P /tmp https://labs.consol.de/assets/downloads/nagios/check_mysql_health-2.2.2.tar.gz
+
+  - name: untar check_mysql_health 
+    unarchive:
+        remote_src: yes
+        src: /tmp/check_mysql_health-2.2.2.tar.gz
+        dest: /tmp/
+
+  - name: install check_mysql_health
+    command: '"{{ item }}" chdir=/tmp/check_mysql_health-2.2.2/'
+    with_items:
+        - ./configure
+
+  - name: running make
+    command: '"{{ item }}" chdir=/tmp/check_mysql_health-2.2.2/'
+    with_items:
+        - make
+
+  - name: running make install
+    command: 'make install chdir=/tmp/check_mysql_health-2.2.2/'
+
+  - name: copy plugin to /usr/lib64/nagios/plugins
+    copy: 
+        src: /usr/local/nagios/libexec/check_mysql_health
+        dest: /usr/lib64/nagios/plugins/check_mysql_health
+        mode: 0755
+        owner: nagios
+        group: nagios
+
   - name: edit nrpe.cfg 
     replace:
         dest: "/etc/nagios/nrpe.cfg"
@@ -60,10 +90,11 @@
         - "command[check_users]=/usr/lib64/nagios/plugins/check_users -w $ARG1$ -c $ARG2$"
         - "command[check_disk]=/usr/lib64/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$"
         - "command[check_procs]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -s $ARG3$"
+        - "command[check_mysql_health]=/usr/lib64/nagios/plugins/check_mysql_health --warning $ARG1$ --critical $ARG2$ --mode $ARG3$"
 
-  - name: start and enable nrpe
+  - name: restart and enable nrpe
     service:
         name: nrpe
-        state: started
+        state: restarted
         enabled: yes
                  
