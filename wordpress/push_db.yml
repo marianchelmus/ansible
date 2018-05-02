@@ -1,5 +1,5 @@
 ---
-- hosts: webservers
+- hosts: dbservers
   user: root
   connection: ssh
   port: 8888

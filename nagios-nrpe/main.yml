@@ -1,5 +1,5 @@
 ---
-- hosts: web3.keepitchill.eu
+- hosts: dbservers
   user: root
   connection: ssh
   port: 8888
@@ -91,6 +91,9 @@
         - "command[check_disk]=/usr/lib64/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$"
         - "command[check_procs]=/usr/lib64/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -s $ARG3$"
         - "command[check_mysql_health]=/usr/lib64/nagios/plugins/check_mysql_health --warning $ARG1$ --critical $ARG2$ --mode $ARG3$"
+#        - "command[check_mysql_health]=/usr/lib64/nagios/plugins/check_mysql_health -c nrpe-check-connection-time --warning $ARG1$ --critical $ARG2$ --mode $ARG3$
+
+
 
   - name: restart and enable nrpe
     service:

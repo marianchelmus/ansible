@@ -1,5 +1,5 @@
 ---
-- hosts: webservers
+- hosts: dbservers
   become_user: "root"
   gather_facts: yes
   connection: ssh
