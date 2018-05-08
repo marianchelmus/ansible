@@ -2,7 +2,6 @@
 - hosts: staging2
   user: root
   become: yes
-  become_method: sudo
   connection: ssh
   port: 22
 
@@ -12,12 +11,23 @@
 - hosts: staging
   user: root
   become: yes
-  become_method: sudo
   connection: ssh
   port: 8888
 
   roles:
   - wp-fetch-files
+
+- hosts: webservers
+  user: root
+  connection: ssh
+  port: 8888
+  vars:
+        last_wp: "{{ lookup('pipe', 'find files/backups/ -type f -name *.tar.gz -mmin -600 | sort -r | head -n 1') }}"
+        last_db: "{{ lookup('pipe', 'find files/backups/ -type f -name *.sql -mmin -600 | sort -r | head -n 1') }}"  
+  roles:
+  - wp-push-files
+
+
 
   handlers:
   - name: include handlers
