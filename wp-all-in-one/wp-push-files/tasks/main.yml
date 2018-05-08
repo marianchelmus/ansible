@@ -1,0 +1,52 @@
+---
+- name: debug last_wp var
+  debug: var=last_wp
+
+- name: debug last_db var
+  debug: var=last_db
+
+- name: include vars
+  include_vars: ../../vars/db.yml
+
+- name: create /backup/{{ lookup('pipe', 'date +%Y%m%d') }} directory
+  file:
+        path: /backup/{{ lookup('pipe', 'date +%Y%m%d') }}
+        state: directory
+
+- name: copy wordpress archive backup
+  copy:
+        src: '{{ last_wp }}'
+        dest: /tmp/wordpress-backup.tar.gz
+
+- name: copy db backup
+  copy: 
+        src: '{{ last_db }}'
+        dest: /tmp/{{ db_name }}.sql
+
+- name: unarchive wordpress backup
+  unarchive:
+        src: /tmp/wordpress-backup.tar.gz
+        dest: /var/www/html/
+        remote_src: yes
+
+- name: drop current database
+  mysql_db:
+        name: '{{ db_name }}'
+        state: absent
+
+- name: recreate db
+  mysql_db:
+        name: '{{ db_name }}'
+        state: present
+
+- name: assign user to db
+  mysql_user:
+        name: '{{ db_user }}'
+        priv: '*.*:ALL'
+        state: present
+
+- name: import database
+  mysql_db:
+        name: '{{ db_name }}'
+        state: import
+        target: /tmp/{{ db_name }}.sql
