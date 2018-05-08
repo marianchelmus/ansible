@@ -1,0 +1,27 @@
+---
+- name: archive /var/www/html
+  archive:
+        path: /var/www/html/
+        dest: /tmp/wordpress-backup.tar.gz
+
+- name: fetch files archiv
+  fetch:
+        src: /tmp/wordpress-backup.tar.gz
+        dest: ../../files/backups/{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}/wordpress-backup.tar.gz
+        flat: yes
+
+- name: include vars
+  include_vars: ../../vars/db.yml
+
+- name: dump db
+  mysql_db:
+        state: dump
+        name: '{{ db_name }}'
+        target: /tmp/{{ db_name }}.sql
+
+- name: fetch db dump
+  fetch:
+        src: /tmp/{{ db_name }}.sql
+        dest: ../../files/backups/{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}/{{ db_name }}.sql
+        flat: yes
+ 

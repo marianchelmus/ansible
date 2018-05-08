@@ -1,0 +1,24 @@
+---
+- hosts: staging2
+  user: root
+  become: yes
+  become_method: sudo
+  connection: ssh
+  port: 22
+
+  roles:
+#  - initial-deploy
+
+- hosts: staging
+  user: root
+  become: yes
+  become_method: sudo
+  connection: ssh
+  port: 8888
+
+  roles:
+  - wp-fetch-files
+
+  handlers:
+  - name: include handlers
+    include: handlers/restart-services.yml

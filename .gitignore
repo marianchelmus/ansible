@@ -4,5 +4,4 @@
 inventory.*
 wordpress/files/db_dumps/*
 wordpress/files/wp_backup/*
-main.yml
 ssh-key

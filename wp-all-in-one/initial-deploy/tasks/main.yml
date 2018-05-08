@@ -1,0 +1,49 @@
+---
+- name: install dependencies
+  yum:
+        name: "{{ item }}"
+        state: present
+  with_items:
+        - vim
+        - net-tools
+        - wget
+        - MySQL-python
+        - httpd
+        - mariadb
+        - mariadb-server
+        - php
+        - php-mysql
+        - php-xml
+        - php-xmlrpc
+        - php-curl
+        - php-zip
+  
+- name: change ssh port
+  lineinfile: dest=/etc/ssh/sshd_config
+              regexp="^Port"
+              line="Port 8888"
+              state=present
+  notify:
+        - restart-sshd
+
+
+- name: disable password login
+  lineinfile: dest=/etc/ssh/sshd_config
+              regexp="^PasswordAuthentication"
+              line="PasswordAuthentication no"
+              state=present 
+  notify:
+        - restart-sshd    
+
+- name: update bashrc
+  copy:
+        src: "../../files/bashrc"
+        dest: "~/.bashrc"
+        backup: yes
+
+- name: update vimrc
+  copy:
+       src: "../../files/vimrc"
+       dest: "~/.vimrc"
+       backup: yes
+
