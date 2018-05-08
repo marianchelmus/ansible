@@ -1,5 +1,5 @@
 ---
-db_name: paridgeopult
-db_user: strobectifie
-db_password: K8baOiZy70m
+db_name: wordpress-test
+db_user: wordpress-user
+db_password: test123
 
