@@ -1,0 +1,68 @@
+---
+- hosts: all
+  connection: ssh
+  port: 8888
+  user: root
+
+  pre_tasks:
+  - name: get kernel version
+    shell: uname -r
+    register: kernel
+
+  tasks:
+  - name: install prerequisites for centos systems
+    yum:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+    when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+
+  - name: install ubuntu prerequisites
+    apt:
+      name: "{{ item }}"
+      state: present
+      update_cache: yes
+      install_recommends: yes
+    with_items:
+      - linux-image-extra-virtual
+    delay: 20
+    when: ansible_distribution == "Ubuntu"
+
+  - name:  add docker-ce repo
+    shell: add-apt-repository “deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable”
+    when: ansible_distribution == "Ubuntu"
+
+  - name: add docker-ce repo
+    shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+  - name: update ubuntu
+    shell: apt-get update -y
+    delay: 20
+
+  - name: update centos
+    shell: yum update -y
+    delay: 20
+
+  - name: install docker centos
+    yum:
+      name: docker-ce
+      state: present
+    when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+  - name: install docker ubuntu
+    apt:
+       name: docker-ce
+       state: present
+       enabled: yes
+    when: ansible_distribution == 'Ubuntu'
+
+  - name: enable docker-ce
+    service:
+       name: docker
+       enabled: yes
+       state: started
