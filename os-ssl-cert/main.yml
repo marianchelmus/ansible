@@ -1,0 +1,74 @@
+---
+- hosts: fleio
+  connection: ssh
+  user: root
+
+  tasks:
+  - name: include vars
+    include_vars:
+      file: /etc/openstack_deploy/user_variables.yml
+
+  - name: run letsencrypt renew
+    shell: letsencrypt renew
+    ignore_errors: true
+    register: exit_code 
+
+  - name: debug exit_code
+    debug:
+      var: exit_code.rc
+
+  - name: stop playbook if exit status is not 0 
+    fail: 
+       msg: "Letsencrypt renewal failed with status: '{{ exit_code.rc }}'"
+    when: exit_code.rc != 0
+
+  - name: get chain.pem file
+    fetch:
+       src: /etc/letsencrypt/live/{{ external_lb_vip_address }}/chain.pem
+       dest: /tmp/chain.pem
+       flat: yes
+    validate_checksum: yes
+
+  - name: get privkey.pem file
+    fetch:
+       src: /etc/letsencrypt/live/{{ external_lb_vip_address }}/privkey.pem
+       dest: /tmp/privkey.pem
+       flat: yes
+    validate_checksum: yes
+
+  - name: get cert.pem file
+    fetch:
+       src: /etc/letsencrypt/live/{{ external_lb_vip_address }}/cert.pem
+       dest: /tmp/cert.pem
+       flat: yes
+    validate_checksum: yes
+
+
+- hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+  - name: replace haproxy_user_ssl_key 
+    copy: 
+         src: /tmp/privkey.pem
+         dest: "{{ haproxy_user_ssl_key }}"
+    backup: yes
+
+  - name: replace haproxy_user_ssl_cert
+    copy:       
+         src: /tmp/cert.pem
+         dest: "{{ haproxy_user_ssl_cert }}"
+    backup: yes
+
+  - name: replace 
+    copy:
+         src: /tmp/chain.pem
+         dest: "{{ haproxy_user_ssl_ca_cert }}"
+    backup: yes
+
+  - name: move /etc/ssl/private/haproxy.pem to a backup file
+    shell: mv /etc/ssl/private/haproxy.pem /etc/ssl/private/haproxy.pem.bak
+
+  - name: append certs to /etc/ssl/private/haproxy.pem
+    shell: cat {{ haproxy_user_ssl_key }} >> /etc/ssl/private/haproxy.pem && cat {{ haproxy_user_ssl_cert }} >> /etc/ssl/private/haproxy.pem && cat {{ haproxy_user_ssl_ca_cert}} >> /etc/ssl/private/haproxy.pem
