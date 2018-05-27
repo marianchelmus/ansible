@@ -11,11 +11,6 @@
     shell: docker swarm join-token -q worker
     register: worker_token
 
-  - name: debug manager_token var
-    debug:
-        var: manager_token
-
-
 - hosts: docker-managers
   user: root
   connection: ssh
@@ -26,8 +21,11 @@
   - name: "get docker info"
     shell: docker info
     register: docker_info
-    changed_when: False
 
+  - name: debug docker_info var
+    debug: 
+        var: docker_info
+ 
   - name: join as manager
     shell: "docker swarm join --token {{ hostvars['localhost']['manager_token']['stdout'] }} {{ hostvars['localhost']['ansible_eth0']['ipv4']['address'] }}:2377"
     retries: 3
@@ -44,7 +42,6 @@
   - name: "get docker info"
     shell: docker info
     register: docker_info
-    changed_when: False
 
   - name: join as worker
     shell: "docker swarm join --token {{ hostvars['localhost']['worker_token']['stdout'] }} {{ hostvars['localhost']['ansible_eth0']['ipv4']['address'] }}:2377"
