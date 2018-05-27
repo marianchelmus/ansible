@@ -4,10 +4,11 @@
   port: 8888
   user: root
 
-#due to unfinished wordpress installation on staging and webservers env 
+#due to unfinished wordpress installation on staging and webservers env
 
   tasks:
   - name: Apply chmod 755 on all /var/www/html
-    file: 
+    file:
         path: /var/www/html
-        mode: 0 
+        mode: 0
+
