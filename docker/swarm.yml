@@ -1,0 +1,54 @@
+---
+- hosts: localhost
+  user: root
+ 
+  tasks:
+  - name: register docker manager command
+    shell: docker swarm join-token -q manager
+    register: manager_token
+
+  - name: register docker worker tocken
+    shell: docker swarm join-token -q worker
+    register: worker_token
+
+  - name: debug manager_token var
+    debug:
+        var: manager_token
+
+
+- hosts: docker-managers
+  user: root
+  connection: ssh
+  port: 8888
+
+  tasks: 
+
+  - name: "get docker info"
+    shell: docker info
+    register: docker_info
+    changed_when: False
+
+  - name: join as manager
+    shell: "docker swarm join --token {{ hostvars['localhost']['manager_token']['stdout'] }} {{ hostvars['localhost']['ansible_eth0']['ipv4']['address'] }}:2377"
+    retries: 3
+    delay: 20
+    when: docker_info.stdout.find("Swarm{{':'}} inactive") != -1
+
+- hosts: docker-workers
+  user: root
+  connection: ssh
+  port: 8888
+
+  tasks:
+
+  - name: "get docker info"
+    shell: docker info
+    register: docker_info
+    changed_when: False
+
+  - name: join as worker
+    shell: "docker swarm join --token {{ hostvars['localhost']['worker_token']['stdout'] }} {{ hostvars['localhost']['ansible_eth0']['ipv4']['address'] }}:2377"
+    retries: 3
+    delay: 20
+    when: docker_info.stdout.find("Swarm{{':'}} inactive") != -1
+
