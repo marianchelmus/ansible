@@ -1,5 +1,5 @@
 ---
-- hosts: fleio
+- hosts: all
   connection: ssh
   user: root
 
@@ -11,14 +11,14 @@
   - name: run letsencrypt renew
     shell: letsencrypt renew
     ignore_errors: true
-    register: exit_code 
+    register: exit_code
 
   - name: debug exit_code
     debug:
       var: exit_code.rc
 
-  - name: stop playbook if exit status is not 0 
-    fail: 
+  - name: stop playbook if exit status is not 0
+    fail:
        msg: "Letsencrypt renewal failed with status: '{{ exit_code.rc }}'"
     when: exit_code.rc != 0
 
@@ -49,19 +49,19 @@
   gather_facts: no
 
   tasks:
-  - name: replace haproxy_user_ssl_key 
-    copy: 
+  - name: replace haproxy_user_ssl_key
+    copy:
          src: /tmp/privkey.pem
          dest: "{{ haproxy_user_ssl_key }}"
     backup: yes
 
   - name: replace haproxy_user_ssl_cert
-    copy:       
+    copy:
          src: /tmp/cert.pem
          dest: "{{ haproxy_user_ssl_cert }}"
     backup: yes
 
-  - name: replace 
+  - name: replace
     copy:
          src: /tmp/chain.pem
          dest: "{{ haproxy_user_ssl_ca_cert }}"
