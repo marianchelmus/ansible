@@ -1,0 +1,28 @@
+---
+- hosts: all
+  connection: ssh
+  user: root
+
+  pre_tasks:
+  - name: set hostname to {{ inventory_hostname }}
+    hostname:
+        name: "{{ inventory_hostname }}"
+
+  - name: check if swap exists
+    stat: 
+        path: /var/swap
+    register: SwapFile
+
+  - tasks:
+
+  - name: add swap
+    include: ./configure-swap/tasks/main.yml
+    when: SwapFile.stat.exists == false
+
+  roles:
+        - set-static-ip
+        - install-cpanel
+#        - install-zabbix
+#        - install-csf
+#        - configure-cpanel
+        

@@ -1,0 +1,31 @@
+---
+- name: download latest version
+  get_url:
+    url: https://securedownloads.cpanel.net/latest
+    dest: /home/latest
+    mode: 0755
+    force: yes
+    validate_certs: false
+
+- name: Install cPanel
+  command: /bin/bash /home/latest
+  args:
+    chdir: /home
+  async: 5400 # wait up-to 90 minutes
+  poll: 10 # checks in 10sec
+  register: cpanel_install_completed
+
+- name: Wait for cPanel to install...
+  wait_for:
+    path: /var/log/cpanel-install.log
+    search_regex: "Thank you for installing cPanel"
+
+- name: do not proceed to the next step if cpanel install fails
+  fail:
+   msg: "Cpanel installation failed"
+  when: cpanel_install_completed is not defined
+
+- name: Cpanel successfuly installed
+  wait_for: 
+   msg: "Cpanel was installed"
+  when: cpanel_install_complete is defined

@@ -1,0 +1,41 @@
+---
+- name: download licence key
+  command: /usr/local/cpanel/cpkeyclt
+
+- name: Upgrade mysql to MariaDB10
+  command: whmapi1 start_background_mysql_upgrade version=10.0
+
+- name: wait 300s for mariadb upgrade
+  wait_for: timeout=300
+
+- name: Check mariadb version
+  shell: mysql --version | awk '{ print $5 }'|awk -F\, '{ print $1 }' | cut -d- -f1 | cut -d. -f1,2
+  register: mysql_version
+
+- debug: var=mysql_version.stdout
+
+- name: Do not proceed to the next step if mariadb upgrade fails
+  fail:
+   msg: "mariadb upgrade failed"
+  when: mysql_version.stdout != "10.0"
+
+- name: Upgrade was completed. Adding params to my.cnf
+  lineinfile:
+   dest: /etc/my.cnf
+   insertafter: EOF
+   backup: yes
+   line: "{{ item }}" 
+  with_items: 
+   - "innodb_read_io_threads=4"
+   - "innodb_write_io_threads=8"
+   - "innodb_buffer_pool_size = 1G"
+   - "innodb_log_files_in_group=2"
+   - "innodb_file_per_table=1"
+   - "innodb_log_buffer_size=8M"
+   - "innodb_flush_method=O_DIRECT"
+   - "innodb_flush_log_at_trx_commit = 2"
+   - "innodb_thread_concurrency = 5"
+   - "innodb_buffer_pool_instances = 8"
+  when: mysql_version.stdout == "10.0"
+
+
