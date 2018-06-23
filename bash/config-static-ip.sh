@@ -22,21 +22,27 @@ if [ $OS  == 'centos' ]
 then
 	echo "---------------------------------------------------------------"
 	echo "Configuring the interface for $OS"
-	echo -e "Network configuration file located at: "'\033[1m' $netcfgCentos'\033[0m'
-	if grep -q dhcp $netcfgCentos
+	if [ ! -f $netcfgCentos ]
 	then
-		sed -i 's/dhcp/static/g' $netcfgCentos
-		sed -i "s/.*BOOTPROTO.*/&\nIPADDR=\"$defIP\"/" $netcfgCentos
-		sed -i "s/.*IPADDR.*/&\nPREFIX=\"$defNetmask\"/" $netcfgCentos
-		sed -i "s/.*PREFIX.*/&\nGATEWAY=\"$gateway\"/" $netcfgCentos
-		sed -i "s/.*GATEWAY.*/&\nDNS1=\"8.8.8.8\"/" $netcfgCentos
-		sed -i "s/.*GATEWAY.*/&\nDNS2=\"8.8.4.4\"/" $netcfgCentos
-		echo "Interface was configured:"
- 	        cat $netcfgCentos	
+		echo "Network configuration file not found... EXITING"
+		exit 4
 	else
-		echo "Interface is already configured"
-		cat $netcfgCentos
-	fi 
+		echo -e "Network configuration file located at: "'\033[1m' $netcfgCentos'\033[0m'
+		if grep -q dhcp $netcfgCentos
+		then
+			sed -i 's/dhcp/static/g' $netcfgCentos
+			sed -i "s/.*BOOTPROTO.*/&\nIPADDR=\"$defIP\"/" $netcfgCentos
+			sed -i "s/.*IPADDR.*/&\nPREFIX=\"$defNetmask\"/" $netcfgCentos
+			sed -i "s/.*PREFIX.*/&\nGATEWAY=\"$gateway\"/" $netcfgCentos
+			sed -i "s/.*GATEWAY.*/&\nDNS1=\"8.8.8.8\"/" $netcfgCentos
+			sed -i "s/.*GATEWAY.*/&\nDNS2=\"8.8.4.4\"/" $netcfgCentos
+			echo "Interface was configured:"
+ 		        cat $netcfgCentos	
+		else
+			echo "Interface is already configured"
+			cat $netcfgCentos
+		fi 
+	fi
 	echo ""
 	echo "---------------------------------------------------------------"
 
@@ -45,19 +51,25 @@ elif [ $OS == 'ubuntu' ]
 then
 	echo "---------------------------------------------------------------"
         echo "Configuring the interface for $OS"
-        echo -e "Network configuration file located at: " '\033[1m' $netcfgUbuntu'\033[0m'
-	if grep -q dhcp $netcfgUbuntu
+       	if [ ! -f $netcfgUbuntu]
 	then
-		sed -i 's/dhcp/static/g' $netcfgUbuntu
-		echo "        address $defIP" >> $netcfgUbuntu
-		echo "        netmask $ubuntuNetmask" >> $netcfgUbuntu
-		echo "        gateway $gateway" >> $netcfgUbuntu
-		echo "        dns-nameservers 8.8.8.8 8.8.4.4" >> $netcfgUbuntu
-		echo "Interface was configured: "
-		cat $netcfgUbuntu
+		echo -e "Configuration file not found... Exitin"
+		exit 4
 	else
-		echo "Interface was already configured"
-		cat $netcfgUbuntu
+		echo -e "Network configuration file located at: " '\033[1m' $netcfgUbuntu'\033[0m'
+		if grep -q dhcp $netcfgUbuntu
+		then
+			sed -i 's/dhcp/static/g' $netcfgUbuntu
+			echo "        address $defIP" >> $netcfgUbuntu
+			echo "        netmask $ubuntuNetmask" >> $netcfgUbuntu
+			echo "        gateway $gateway" >> $netcfgUbuntu
+			echo "        dns-nameservers 8.8.8.8 8.8.4.4" >> $netcfgUbuntu
+			echo "Interface was configured: "
+			cat $netcfgUbuntu
+		else
+			echo "Interface was already configured"
+			cat $netcfgUbuntu
+		fi
 	fi
 else
 	echo "OS is not Ubuntu or Centos"
