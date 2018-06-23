@@ -10,7 +10,7 @@ gateway=$(ip r | grep default | awk '{print $3}')
 #netcfgCentos="/etc/sysconfig/network-scripts/ifcg-$defInterface"
 netcfgCentos="/ansible/bash/test-eth0"
 #netcfgUbuntu="/etc/network/interfaces
-netcfUbuntu="/root/interfaces"
+netcfgUbuntu="/root/interfaces"
 
 #echo vars
 echo "---------------------------------------------------------------"
@@ -45,20 +45,21 @@ elif [ $OS == 'ubuntu' ]
 then
 	echo "---------------------------------------------------------------"
         echo "Configuring the interface for $OS"
-        echo -e "Network configuration file located at: "'\033[1m' $netcfgUbuntu'\033[0m'
+        echo -e "Network configuration file located at: " '\033[1m' $netcfgUbuntu'\033[0m'
 	if grep -q dhcp $netcfgUbuntu
 	then
 		sed -i 's/dhcp/static/g' $netcfgUbuntu
-		echo "        address $defIP"
-		echo "        netmask $ubuntuNetmask"
-		echo "        gateway $gateway"
-		echo "        dbs-nameservers 8.8.8.8 8.8.4.4"
+		echo "        address $defIP" >> $netcfgUbuntu
+		echo "        netmask $ubuntuNetmask" >> $netcfgUbuntu
+		echo "        gateway $gateway" >> $netcfgUbuntu
+		echo "        dns-nameservers 8.8.8.8 8.8.4.4" >> $netcfgUbuntu
+		echo "Interface was configured: "
+		cat $netcfgUbuntu
 	else
 		echo "Interface was already configured"
 		cat $netcfgUbuntu
+	fi
 else
 	echo "OS is not Ubuntu or Centos"
 	exit 4
 fi
-
-
