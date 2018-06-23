@@ -53,7 +53,7 @@ then
         echo "Configuring the interface for $OS"
        	if [ ! -f $netcfgUbuntu ]
 	then
-		echo -e "Configuration file not found... Exitin"
+		echo "Configuration file not found... Exiting"
 		exit 4
 	else
 		echo -e "Network configuration file located at: " '\033[1m' $netcfgUbuntu'\033[0m'
