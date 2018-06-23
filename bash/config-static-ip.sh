@@ -51,7 +51,7 @@ elif [ $OS == 'ubuntu' ]
 then
 	echo "---------------------------------------------------------------"
         echo "Configuring the interface for $OS"
-       	if [ ! -f $netcfgUbuntu]
+       	if [ ! -f $netcfgUbuntu ]
 	then
 		echo -e "Configuration file not found... Exitin"
 		exit 4
