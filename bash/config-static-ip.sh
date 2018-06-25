@@ -7,10 +7,10 @@ defIP=$(ip -f inet a show $defInterface | grep inet | awk '{ print $2 }' | cut -
 defNetmask=$(ip -f inet a show eth0 | grep inet | awk '{ print $2 }' | rev | cut -d / -f1 | rev)
 ubuntuNetmask=$(ifconfig $defInterface | sed -rn '2s/ .*:(.*)$/\1/p')
 gateway=$(ip r | grep default | awk '{print $3}')
-#netcfgCentos="/etc/sysconfig/network-scripts/ifcg-$defInterface"
-netcfgCentos="/ansible/bash/test-eth0"
-#netcfgUbuntu="/etc/network/interfaces
-netcfgUbuntu="/root/interfaces"
+netcfgCentos="/etc/sysconfig/network-scripts/ifcfg-$defInterface"
+#netcfgCentos="/ansible/bash/test-eth0"
+netcfgUbuntu="/etc/network/interfaces"
+#netcfgUbuntu="/root/interfaces"
 
 #echo vars
 echo "---------------------------------------------------------------"
