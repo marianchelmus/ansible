@@ -4,7 +4,7 @@
 OS=$(awk '/^ID=/' /etc/*-release | awk -F'=' '{ print tolower($2) }' | sed 's/"//' | sed 's/["]//')
 defInterface=$(ip addr show | awk '/inet.*brd/{print $NF}' | head -n 1)
 defIP=$(ip -f inet a show $defInterface | grep inet | awk '{ print $2 }' | cut -d / -f1)
-defNetmask=$(ip -f inet a show eth0 | grep inet | awk '{ print $2 }' | rev | cut -d / -f1 | rev)
+defNetmask=$(ip -f inet a show $defInterface | grep inet | awk '{ print $2 }' | rev | cut -d / -f1 | rev)
 ubuntuNetmask=$(ifconfig $defInterface | sed -rn '2s/ .*:(.*)$/\1/p')
 gateway=$(ip r | grep default | awk '{print $3}')
 netcfgCentos="/etc/sysconfig/network-scripts/ifcfg-$defInterface"
