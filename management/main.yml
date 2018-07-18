@@ -13,7 +13,7 @@
         path: /var/swap
     register: SwapFile
 
-  - tasks:
+  tasks:
 
   - name: add swap
     include: ./configure-swap/tasks/main.yml
