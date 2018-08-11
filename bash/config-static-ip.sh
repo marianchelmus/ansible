@@ -7,10 +7,10 @@ defIP=$(ip -f inet a show $defInterface | grep inet | awk '{ print $2 }' | cut -
 defNetmask=$(ip -f inet a show $defInterface | grep inet | awk '{ print $2 }' | rev | cut -d / -f1 | rev)
 ubuntuNetmask=$(ifconfig $defInterface | sed -rn '2s/ .*:(.*)$/\1/p')
 gateway=$(ip r | grep default | awk '{print $3}')
-netcfgCentos="/etc/sysconfig/network-scripts/ifcfg-$defInterface"
-#netcfgCentos="/ansible/bash/test-eth0"
-netcfgUbuntu="/etc/network/interfaces"
-#netcfgUbuntu="/root/interfaces"
+#netcfgCentos="/etc/sysconfig/network-scripts/ifcfg-$defInterface"
+netcfgCentos="/ansible/bash/test-eth0"
+#netcfgUbuntu="/etc/network/interfaces"
+netcfgUbuntu="/root/interfaces"
 
 #echo vars
 echo "---------------------------------------------------------------"
@@ -75,3 +75,44 @@ else
 	echo "OS is not Ubuntu or Centos"
 	exit 4
 fi
+
+
+
+while true
+do
+    touch /tmp/iplist
+    echo -n "Insert IP [leave blank for none]: "
+    read IP
+    echo $IP >> /tmp/iplist
+        if [ -z $IP ]; then
+            break
+        fi
+done
+
+#remove the last blank line in /tmp/iplist
+head -n -1 /tmp/iplist > /tmp/tempIPlist; mv /tmp/tempIPlist /tmp/iplist
+
+for line in `cat /tmp/iplist`
+do
+    if [ $OS == 'centos' ]
+    then
+        n="0"
+        NumberOfIps=$(wc -l /tmp/iplist | awk '{ print $1 }')
+        while [ $n -lt $NumberOfIps ]
+        	do
+            	touch $netcfgCentos:$n
+            	for IP in `cat /tmp/iplist`;do
+                	echo ${IP} > $netcfgCentos:$n
+                	n=$(( $n + 1 ))
+            	done
+            done
+    else
+        echo "" >> $netcfgUbuntu
+        echo "post-up ip a a ${line}/$ubuntuNetmask dev $defInterface" >> $netcfgUbuntu
+    fi
+done
+
+#delete de ip list
+rm -f /tmp/iplist
+
+
