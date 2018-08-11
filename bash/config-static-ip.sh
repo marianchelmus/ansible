@@ -92,25 +92,29 @@ done
 #remove the last blank line in /tmp/iplist
 head -n -1 /tmp/iplist > /tmp/tempIPlist; mv /tmp/tempIPlist /tmp/iplist
 
-for line in `cat /tmp/iplist`
-do
+#for line in `cat /tmp/iplist`
+#do
     if [ $OS == 'centos' ]
     then
         n="0"
         NumberOfIps=$(wc -l /tmp/iplist | awk '{ print $1 }')
+        netmaskAddIPs=$(ifconfig eth0 | grep netmask | awk '{print$4}')
         while [ $n -lt $NumberOfIps ]
         	do
             	touch $netcfgCentos:$n
             	for IP in `cat /tmp/iplist`;do
-                	echo ${IP} > $netcfgCentos:$n
-                	n=$(( $n + 1 ))
+                	echo "DEVICE=\"$defInterface:$n\"" >> $netcfgCentos:$n
+                    echo "IPADDR=\"$IP\"" >> $netcfgCentos:$n
+                    echo "NETMASK=\"$netmaskAddIPs\"" >> $netcfgCentos:$n
+                    echo "ONBOOT=\"yes\"" >> $netcfgCentos:$n
+                    n=$(( $n + 1 ))
             	done
             done
     else
         echo "" >> $netcfgUbuntu
         echo "post-up ip a a ${line}/$ubuntuNetmask dev $defInterface" >> $netcfgUbuntu
     fi
-done
+#done
 
 #delete de ip list
 rm -f /tmp/iplist
