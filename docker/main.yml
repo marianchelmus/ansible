@@ -1,7 +1,7 @@
 ---
 - hosts: all
   connection: ssh
-  port: 8888
+  port: 22
   user: root
 
   tasks:
